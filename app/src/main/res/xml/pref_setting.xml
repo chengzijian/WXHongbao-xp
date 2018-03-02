@@ -1,0 +1,43 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="@string/setting">
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="open"
+            android:summary="记得设置要领取的手机号码"
+            android:title="@string/pref_open" />
+
+        <SwitchPreference
+            android:defaultValue="false"
+            android:dependency="open"
+            android:key="not_self"
+            android:title="@string/pre_not_self" />
+
+        <EditTextPreference
+            android:defaultValue="0000"
+            android:key="mobile"
+            android:maxLength="11"
+            android:numeric="integer"
+            android:summary=""
+            android:title="设置手机号" />
+
+        <Preference
+            android:summary="每个平台下的每个号码每日只可领取3次，超过次数不会领取，请大家按需使用"
+            android:title="规则" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/about">
+        <Preference
+            android:key="author"
+            android:summary="zijian.cheng"
+            android:title="@string/author" />
+        <Preference
+            android:key="donate_alipay"
+            android:title="@string/alipay_donate" />
+        <Preference
+            android:key="donate_wechat"
+            android:title="@string/wechat_donate" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

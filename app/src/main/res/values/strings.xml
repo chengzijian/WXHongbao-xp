@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">微信领外卖红包</string>
+    <string name="app_desc">自动抢最佳外卖红包</string>
+    <string name="pref_open">抢最佳红包</string>
+    <string name="pre_not_self">自己发的不抢</string>
+    <string name="about">关于</string>
+    <string name="author">作者</string>
+    <string name="wechat_donate">微信捐赠</string>
+    <string name="alipay_donate">支付宝捐赠</string>
+    <string name="setting">设置</string>
+</resources>

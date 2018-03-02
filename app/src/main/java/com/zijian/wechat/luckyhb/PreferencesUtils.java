@@ -9,7 +9,6 @@ import de.robv.android.xposed.XSharedPreferences;
 public class PreferencesUtils {
 
     private static XSharedPreferences instance = null;
-    private static int MAX_COUNT = 3;
 
     private static XSharedPreferences getInstance() {
         if (instance == null) {
@@ -33,14 +32,16 @@ public class PreferencesUtils {
         return getInstance().getString("mobile", null);
     }
 
-    public static int getUseCount(){
-        String mobile = getMobile();
-        return getInstance().getInt(mobile, 0);
+    public static int getMaxCount() {
+        return getInstance().getInt("max_count", 0);
     }
 
-    public static boolean canUse() {
-        String mobile = getMobile();
-        return getInstance().getInt(mobile, 0) < MAX_COUNT;
+    public static boolean getMeituan() {
+        return getInstance().getBoolean("get_meituan", false);
+    }
+
+    public static boolean getElem() {
+        return getInstance().getBoolean("get_elem", false);
     }
 
 }

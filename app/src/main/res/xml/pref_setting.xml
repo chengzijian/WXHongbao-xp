@@ -8,6 +8,18 @@
             android:title="@string/pref_open" />
 
         <SwitchPreference
+            android:defaultValue="true"
+            android:dependency="open"
+            android:key="get_meituan"
+            android:title="领美团红包" />
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:dependency="open"
+            android:key="get_elem"
+            android:title="领饿了么红包" />
+
+        <SwitchPreference
             android:defaultValue="false"
             android:dependency="open"
             android:key="not_self"
@@ -22,8 +34,8 @@
             android:title="设置手机号" />
 
         <Preference
-            android:summary="每个平台下的每个号码每日只可领取3次，超过次数不会领取，请大家按需使用"
-            android:title="规则" />
+            android:key="info"
+            android:title="说明" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/about">

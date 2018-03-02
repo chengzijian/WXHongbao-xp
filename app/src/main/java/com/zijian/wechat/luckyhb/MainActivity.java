@@ -19,6 +19,7 @@ import android.widget.Toast;
 public class MainActivity extends AppCompatActivity {
 
     private SettingsFragment mSettingsFragment;
+    public static int MAX_COUNT = 5;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,15 +49,15 @@ public class MainActivity extends AppCompatActivity {
             super.onCreate(savedInstanceState);
             getPreferenceManager().setSharedPreferencesName("user_settings");
             getPreferenceManager().setSharedPreferencesMode(MODE_WORLD_READABLE);
+            getPreferenceManager().getSharedPreferences().edit().putInt("max_count", MAX_COUNT).apply();
             addPreferencesFromResource(R.xml.pref_setting);
 
             editPre = (EditTextPreference) findPreference("mobile");
-            editPre.setSummary(getPreferenceManager().getSharedPreferences().getString("mobile"
-                    , ""));
+            editPre.setSummary(getPreferenceManager().getSharedPreferences().getString("mobile", ""));
             editPre.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                 @Override
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
-                    if(newValue != null){
+                    if (newValue != null) {
                         Log.e("onPreferenceChange", newValue.toString());
                         String value = newValue.toString();
                         if (value.matches("^[1][3,4,5,6,7,8][0-9]{9}$")) {
@@ -70,6 +71,12 @@ public class MainActivity extends AppCompatActivity {
                     return false;
                 }
             });
+
+
+            Preference info = findPreference("info");
+            info.setSummary("每个平台下的每个号码每日只可领取 " +
+                    getPreferenceManager().getSharedPreferences().getInt("max_count", MAX_COUNT)
+                    + " 次，超过次数不会领取，请大家按需使用");
 
             Preference reset = findPreference("author");
             reset.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {

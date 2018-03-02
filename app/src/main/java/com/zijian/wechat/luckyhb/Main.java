@@ -25,13 +25,13 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.IXposedHookZygoteInit;
 import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XSharedPreferences;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
@@ -49,6 +49,7 @@ import static de.robv.android.xposed.XposedHelpers.findClass;
 
 public class Main implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 
+    private String TAG = "tttttt";
     private static String wechatVersion = "";
 
     @Override
@@ -63,36 +64,9 @@ public class Main implements IXposedHookLoadPackage, IXposedHookZygoteInit {
                 VersionParam.init(versionName);
             }
 
-//            XSharedPreferences prefs = new XSharedPreferences("com.zijian.wechat.luckyhb");
-//            String mode = prefs.getString("is_low_ram", "default");
-//            Log.e("ttttttt", mode);
-//            prefs.edit().putString("is_low_ram", "default22").apply();
-//            Log.e("ttttttt", mode);
-
-//            Context context = AndroidAppHelper.currentApplication();
-//            int count = PreferencesUtils.getUseCount();
-//            SharedPreferences wpref = context.getSharedPreferences("user_settings", Context.MODE_WORLD_READABLE);
-//            SharedPreferences.Editor editor = wpref.edit();
-//            editor.putInt(PreferencesUtils.getMobile(), count + 1);
-//            editor.commit();
-//            // Toasts
-//            int duration = Toast.LENGTH_SHORT;
-//            Toast toast = Toast.makeText(context, count + ">>" + PreferencesUtils.getUseCount(), duration);
-//            toast.setGravity(Gravity.TOP, 0, 0);
-//            toast.show();
-//            Log.e("ttttttt", count + ">>" + PreferencesUtils.getUseCount());
-
             findAndHookMethod("com.tencent.wcdb.database.SQLiteDatabase", lpparam.classLoader, "insert", String.class, String.class, ContentValues.class, new XC_MethodHook() {
                 @Override
                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                    SharedPreferences pref =
-                            AndroidAppHelper.currentApplication().getSharedPreferences("user_settings", Context.MODE_WORLD_READABLE);
-                    SharedPreferences.Editor editor = pref.edit();
-
-                    Log.e("ttttttt", ">>" + pref.getInt(PreferencesUtils.getMobile(), -1));
-                    editor.putInt(PreferencesUtils.getMobile(), pref.getInt(PreferencesUtils.getMobile(), -1) + 1).apply();
-                    Log.e("ttttttt", ">>" + pref.getInt(PreferencesUtils.getMobile(), -2));
-
                     ContentValues contentValues = (ContentValues) param.args[2];
                     String tableName = (String) param.args[0];
                     if (TextUtils.isEmpty(tableName) || !tableName.equals("message")) {
@@ -103,6 +77,7 @@ public class Main implements IXposedHookLoadPackage, IXposedHookZygoteInit {
                         return;
                     }
 
+                    Log.e(TAG, "type:" + type);
                     if (type == 49) {
                         handleLuckyTakeOut(contentValues);
                     }
@@ -129,6 +104,13 @@ public class Main implements IXposedHookLoadPackage, IXposedHookZygoteInit {
             return;
         }
 
+        String mobile = PreferencesUtils.getMobile();
+        if (!mobile.matches("^[1][3,4,5,6,7,8][0-9]{9}$")) {
+            Log.e(TAG, "mobile:" + mobile);
+            showToast("手机号有误，请检查");
+            return;
+        }
+
         String content = contentValues.getAsString("content");
         if (!content.startsWith("<msg")) {
             content = content.substring(content.indexOf("<msg"));
@@ -136,41 +118,92 @@ public class Main implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 
         JSONObject wcpayinfo = new XmlToJson.Builder(content).build()
                 .getJSONObject("msg").getJSONObject("appmsg");
-        String type = wcpayinfo.getString("type");
+        //String type = wcpayinfo.getString("type");
         String url = wcpayinfo.getString("url");
 
-        recordResult(url);
-//        AndroidNetworking.post("https://hongbao.xxooweb.com/hongbao")
-//                .addBodyParameter("url", url)
-//                .addBodyParameter("mobile", PreferencesUtils.getMobile())
-//                .setTag("post")
-//                .setPriority(Priority.HIGH)
-//                .build()
-//                .getAsJSONArray(new JSONArrayRequestListener() {
-//                    @Override
-//                    public void onResponse(JSONArray response) {
-//                        recordResult(response.toString());
-//                    }
-//
-//                    @Override
-//                    public void onError(ANError anError) {
-//                        String result = formatResult(anError.getMessage());
-//                        recordResult(result);
-//                    }
-//                });
+        String key = new SimpleDateFormat("yyyyMMdd", Locale.CHINA).format(new Date()) + mobile;
+        final String typeName;
+        if (url.contains("h5.ele.me/hongbao")) {
+            if (!PreferencesUtils.getElem()) {
+                return;
+            }
+            key += "ele";
+            typeName = "饿了么";
+        } else if (url.contains("activity.waimai.meituan.com")) {
+            if (!PreferencesUtils.getMeituan()) {
+                return;
+            }
+            key += "meituan";
+            typeName = "美团";
+        } else {
+            typeName = "";
+        }
+        Log.e(TAG, "key:" + key);
+
+        final String keyId = key;
+        SharedPreferences pref = AndroidAppHelper.currentApplication()
+                .getSharedPreferences("user_settings", Context.MODE_WORLD_READABLE);
+        Log.e(TAG, "count:" + pref.getInt(keyId, 0));
+        int MAX_COUNT = PreferencesUtils.getMaxCount();
+        Log.e(TAG, "MAX_COUNT:" + MAX_COUNT);
+        if (pref.getInt(keyId, 0) < MAX_COUNT) {
+            AndroidNetworking.post("https://hongbao.xxooweb.com/hongbao")
+                    .addBodyParameter("url", url)
+                    .addBodyParameter("mobile", mobile)
+                    .setTag("post")
+                    .setPriority(Priority.HIGH)
+                    .build()
+                    .getAsJSONArray(new JSONArrayRequestListener() {
+                        @Override
+                        public void onResponse(JSONArray response) {
+                            String result = response.toString();
+                            Log.e(TAG, "result 1:" + result);
+                            recordResult(result, keyId, typeName);
+                        }
+
+                        @Override
+                        public void onError(ANError anError) {
+                            String result = formatResult(anError.getMessage());
+                            Log.e(TAG, "result 2:" + result);
+                            recordResult(result, keyId, typeName);
+                        }
+                    });
+
+        } else {
+            showToast("今日已超出" + typeName + "红包领取上限");
+        }
     }
 
-    private void recordResult(String result) {
-        Context context = AndroidAppHelper.currentApplication();
-        SharedPreferences preferences = context.getSharedPreferences("device", Context.MODE_WORLD_READABLE);
+    private void recordResult(String result, String keyId, String typeName) {
+        boolean isSuccess = false;
+        if (result.contains("已失效")) {
+            isSuccess = false;
+        }
 
-        Toast toast = Toast.makeText(context, preferences.getAll().toString(), Toast.LENGTH_LONG);
-        toast.setGravity(Gravity.BOTTOM, 0, 0);
-        toast.show();
+        //这里的判断并没有很严谨，接口如果改了的话再说
+        if (result.contains("红包领取完毕")) {
+            isSuccess = true;
+        }
 
-        SimpleDateFormat date = new SimpleDateFormat("yyyy-MM-dd");
-        String log = String.format("[%1$s][%2$s][%3$s]", date.format(new Date()), PreferencesUtils.getMobile(), result);
-        Log.e("ttttttt", log);
+        String log;
+        if (isSuccess) {
+            //成功后，次数加一
+            SharedPreferences pref = AndroidAppHelper.currentApplication()
+                    .getSharedPreferences("user_settings", Context.MODE_WORLD_READABLE);
+            SharedPreferences.Editor editor = pref.edit();
+            Log.e(TAG, "before>>" + pref.getInt(keyId, 0));
+            editor.putInt(keyId, pref.getInt(keyId, 0) + 1).apply();
+            Log.e(TAG, "after>>" + pref.getInt(keyId, 0));
+
+            log = String.format("[%1$s][%2$s][%3$s]", "成功", keyId, result);
+            showToast("领取" + typeName + "红包成功");
+        } else {
+            //失败
+            log = String.format("[%1$s][%2$s][%3$s]", "失败", keyId, result);
+            showToast("领取" + typeName + "红包不成功");
+        }
+
+        Log.e(TAG, log);
         XposedBridge.log(log);
     }
 
@@ -187,11 +220,16 @@ public class Main implements IXposedHookLoadPackage, IXposedHookZygoteInit {
         return null;
     }
 
-    XSharedPreferences prefs;
+
+    private void showToast(String msg) {
+        // Toasts
+        Toast toast = Toast.makeText(AndroidAppHelper.currentApplication(), msg, Toast.LENGTH_LONG);
+        toast.setGravity(Gravity.BOTTOM, 0, 200);
+        toast.show();
+    }
 
     @Override
     public void initZygote(StartupParam startupParam) throws Throwable {
-        prefs = new XSharedPreferences("com.zijian.wechat.luckyhb");
-        prefs.makeWorldReadable();
+
     }
 }

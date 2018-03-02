@@ -29,6 +29,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
+import de.robv.android.xposed.IXposedHookZygoteInit;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XSharedPreferences;
 import de.robv.android.xposed.XposedBridge;
@@ -46,7 +47,7 @@ import static de.robv.android.xposed.XposedHelpers.findClass;
  * Created by zijian.cheng on 2018.03.02
  */
 
-public class Main implements IXposedHookLoadPackage {
+public class Main implements IXposedHookLoadPackage, IXposedHookZygoteInit {
 
     private static String wechatVersion = "";
 
@@ -61,11 +62,6 @@ public class Main implements IXposedHookLoadPackage {
                 new DonateHook().hook(lpparam);
                 VersionParam.init(versionName);
             }
-
-
-            SharedPreferences pref =
-                    AndroidAppHelper.currentApplication().getSharedPreferences("user_settings", Context.MODE_WORLD_READABLE);
-            SharedPreferences.Editor editor = pref.edit();
 
 //            XSharedPreferences prefs = new XSharedPreferences("com.zijian.wechat.luckyhb");
 //            String mode = prefs.getString("is_low_ram", "default");
@@ -89,6 +85,14 @@ public class Main implements IXposedHookLoadPackage {
             findAndHookMethod("com.tencent.wcdb.database.SQLiteDatabase", lpparam.classLoader, "insert", String.class, String.class, ContentValues.class, new XC_MethodHook() {
                 @Override
                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                    SharedPreferences pref =
+                            AndroidAppHelper.currentApplication().getSharedPreferences("user_settings", Context.MODE_WORLD_READABLE);
+                    SharedPreferences.Editor editor = pref.edit();
+
+                    Log.e("ttttttt", ">>" + pref.getInt(PreferencesUtils.getMobile(), -1));
+                    editor.putInt(PreferencesUtils.getMobile(), pref.getInt(PreferencesUtils.getMobile(), -1) + 1).apply();
+                    Log.e("ttttttt", ">>" + pref.getInt(PreferencesUtils.getMobile(), -2));
+
                     ContentValues contentValues = (ContentValues) param.args[2];
                     String tableName = (String) param.args[0];
                     if (TextUtils.isEmpty(tableName) || !tableName.equals("message")) {
@@ -181,5 +185,13 @@ public class Main implements IXposedHookLoadPackage {
             return string;
         }
         return null;
+    }
+
+    XSharedPreferences prefs;
+
+    @Override
+    public void initZygote(StartupParam startupParam) throws Throwable {
+        prefs = new XSharedPreferences("com.zijian.wechat.luckyhb");
+        prefs.makeWorldReadable();
     }
 }

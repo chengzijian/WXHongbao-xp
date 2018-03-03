@@ -1,6 +1,27 @@
-<FrameLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/settings_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"/>
+    android:background="@color/white">
+
+    <LinearLayout
+        android:id="@+id/id_layer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="抱歉，您的手机未安装xposed框架或者你并没有重启手机，无法使用"
+            android:textColor="#ff0000"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/id_info"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/info"
+            android:textSize="18sp" />
+    </LinearLayout>
+</FrameLayout>

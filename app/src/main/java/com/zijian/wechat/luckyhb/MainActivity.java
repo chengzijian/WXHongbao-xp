@@ -10,7 +10,10 @@ import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.method.LinkMovementMethod;
 import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 /**
@@ -25,7 +28,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        if (savedInstanceState == null) {
+        ((TextView) findViewById(R.id.id_info)).setMovementMethod(LinkMovementMethod.getInstance());
+
+        if (savedInstanceState == null && isModuleActive()) {
+            findViewById(R.id.id_layer).setVisibility(View.GONE);
             mSettingsFragment = new SettingsFragment();
             replaceFragment(R.id.settings_container, mSettingsFragment);
         }
@@ -49,8 +55,8 @@ public class MainActivity extends AppCompatActivity {
             super.onCreate(savedInstanceState);
             getPreferenceManager().setSharedPreferencesName("user_settings");
             getPreferenceManager().setSharedPreferencesMode(MODE_WORLD_READABLE);
-            getPreferenceManager().getSharedPreferences().edit().putInt("max_count", MAX_COUNT).apply();
             addPreferencesFromResource(R.xml.pref_setting);
+            getPreferenceManager().getSharedPreferences().edit().putInt("max_count", MAX_COUNT).apply();
 
             editPre = (EditTextPreference) findPreference("mobile");
             editPre.setSummary(getPreferenceManager().getSharedPreferences().getString("mobile", ""));
@@ -121,6 +127,11 @@ public class MainActivity extends AppCompatActivity {
             });
 
         }
+    }
+
+    private static boolean isModuleActive() {
+        return false;
+
     }
 
     @Override

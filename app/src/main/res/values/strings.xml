@@ -8,4 +8,6 @@
     <string name="wechat_donate">微信捐赠</string>
     <string name="alipay_donate">支付宝捐赠</string>
     <string name="setting">设置</string>
+
+    <string name="info"><a href='https://baike.baidu.com/item/Xposed框架/16859077'>点击查看什么是Xposed框架?</a></string>
 </resources>

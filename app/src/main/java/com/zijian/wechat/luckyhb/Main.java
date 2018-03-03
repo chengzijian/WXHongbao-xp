@@ -143,7 +143,7 @@ public class Main implements IXposedHookLoadPackage, IXposedHookZygoteInit {
             key += "meituan";
             typeName = "美团";
         } else {
-            typeName = "";
+            return;
         }
         Log.e(TAG, "key:" + key);
 
